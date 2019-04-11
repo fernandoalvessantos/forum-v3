@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import br.com.alura.forum.infra.NewReplyMailFactory;
 import br.com.alura.forum.model.Answer;
 import br.com.alura.forum.model.topic.domain.Topic;
 
@@ -16,22 +19,29 @@ import br.com.alura.forum.model.topic.domain.Topic;
 public class ForumMailService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ForumMailService.class);
+	
 	@Autowired
 	private JavaMailSender mailSender;
+	
+	@Autowired
+	private NewReplyMailFactory newReplyMailFactory;
 	
 	@Async
 	public void sendNewReplyMail(Answer answer) {
 		Topic answeredTopic = answer.getTopic();
 		
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setTo(answeredTopic.getOwnerEmail());
-		message.setSubject("Novo comentário em: "+answeredTopic.getShortDescription());
-		message.setText("Olá "+answeredTopic.getOwnerName() + "\n\n" +
-				"Há uma nova mensagem do fórum! "+ answer.getOwnerName() + 
-				" comentou no tópico: "+ answeredTopic.getShortDescription());
+		MimeMessagePreparator messagePreparator = (mimeMessage) -> {
+			MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage); 
+			
+			messageHelper.setTo(answeredTopic.getOwnerEmail());
+			messageHelper.setSubject("Novo comentário em: "+answeredTopic.getShortDescription());
+			
+			String messageContent = this.newReplyMailFactory.generateNewReplyMailContent(answer);
+			messageHelper.setText(messageContent, true);
+		};
 		
 		try {
-			mailSender.send(message);
+			mailSender.send(messagePreparator);
 		} catch (MailException e) {
 			Topic answeredTopic2 = answer.getTopic();
 			logger.error("Não foi possível notificar o usuário {} enviando email para {}",
