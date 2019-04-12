@@ -23,11 +23,7 @@ public class OpenTopicsByCategory {
 	private LocalDate date;
 
 	@Deprecated
-	public OpenTopicsByCategory(Long id, String categoryName, int topicCount, LocalDate date) {
-		this.id = id;
-		this.categoryName = categoryName;
-		this.topicCount = topicCount;
-		this.date = date;
+	public OpenTopicsByCategory() {
 	}
 	
 	public OpenTopicsByCategory(String categoryName, Number topicCount, Date instant) {

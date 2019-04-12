@@ -3,6 +3,7 @@ package br.com.alura.forum.task;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import br.com.alura.forum.model.OpenTopicsByCategory;
@@ -18,9 +19,11 @@ public class RegisterUnasweredTopicsTask {
 	@Autowired
 	private OpenTopicsByCategoryRepository openTopicsByCategoryRepository;
 	
+	@Scheduled(cron = "0 0 20 * * *") // oficial
+	//@Scheduled(cron = "0/10 * * * * *") //para testes
 	public void execute() {
 		List<OpenTopicsByCategory> topics = topicRepository.findOpenTopicsByCategory();
 		
-		this.openTopicsByCategoryRepository.salveAll(topics);
+		this.openTopicsByCategoryRepository.saveAll(topics);
 	}
 }
